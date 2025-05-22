@@ -15,6 +15,7 @@ public class AnalizadorLexico {
     private final Pattern patronNumeroReal = Pattern.compile("-?\\d+\\.\\d+"); // Números reales con signo negativo
     private final Pattern patronOperadorAritmetico = Pattern.compile("[+\\-*/^#]");
     private final Pattern patronOperadorRelacional = Pattern.compile("==|>=|<=|!=|<|>");
+    private final Pattern patronCorchete = Pattern.compile("[\\[\\]]");
     private final Pattern patronOperadorAsignacion = Pattern.compile("="); // Operador de asignación
     private final Pattern patronOperadorLogico = Pattern.compile("\\|\\||&&|!");
     private final Pattern patronSignosEspeciales = Pattern.compile("[(){},;]");
@@ -58,9 +59,15 @@ public class AnalizadorLexico {
     
     private String eliminarComentariosVariasLineas(String codigo) {
         // Expresión regular para eliminar comentarios de varias líneas (/* ... */)
-        Pattern patronComentarioVariasLineas = Pattern.compile("/\\*.*?\\*/", Pattern.DOTALL);
-        Matcher matcher = patronComentarioVariasLineas.matcher(codigo);
-        return matcher.replaceAll("");
+        // Eliminar comentarios de varias líneas
+    Pattern patronComentarioVariasLineas = Pattern.compile("/\\*.*?\\*/", Pattern.DOTALL);
+    codigo = patronComentarioVariasLineas.matcher(codigo).replaceAll("");
+
+    // Eliminar comentarios de una sola línea
+    Pattern patronComentarioUnaLinea = Pattern.compile("//.*$", Pattern.MULTILINE);
+    codigo = patronComentarioUnaLinea.matcher(codigo).replaceAll("");
+
+    return codigo;
     }
 
     private void procesarLinea(String linea, int numeroLinea) {
@@ -72,6 +79,7 @@ public class AnalizadorLexico {
                 columna++;
                 continue;
             }
+            
     
             // Detectar comentarios de varias líneas (/* ... */)
             if (linea.startsWith("/*")) {
@@ -120,6 +128,16 @@ public class AnalizadorLexico {
                 columna += token.length();
                 tokenEncontrado = true;
             }
+                        // Corchetes [ y ]
+            Matcher matcherCorchete = patronCorchete.matcher(linea);
+            if (!tokenEncontrado && matcherCorchete.lookingAt()) {
+                String token = matcherCorchete.group();
+                tokens.add(new Token("CORCHETE", token, numeroLinea, columna));
+                linea = linea.substring(token.length()).trim();
+                columna += token.length();
+                tokenEncontrado = true;
+            }
+
     
             // Caracteres
             Matcher matcherChar = patronChar.matcher(linea);
@@ -265,6 +283,10 @@ public class AnalizadorLexico {
             System.out.println(error);
         }
     }
+    public String getCodigoSinComentarios() {
+    return eliminarComentariosVariasLineas(codigoFuente);
+}
+
 }
 
 class Token {
@@ -296,6 +318,7 @@ class Token {
     public void setValor(String valor) {
         this.valor = valor;
     }
+
 
     public int getLinea() {
         return linea;

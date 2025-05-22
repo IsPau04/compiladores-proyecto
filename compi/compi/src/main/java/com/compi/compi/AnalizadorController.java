@@ -1,87 +1,73 @@
-package com.compi.compi;
+/*package com.compi.compi;
+
+import com.compi.compi.parser.MiGramaticaCustomVisitor;
+import com.compi.parser.MiGramaticaLexer;
+import com.compi.parser.MiGramaticaParser;
+
+import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.tree.*;
 
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-
-@CrossOrigin(origins = "http://localhost:3000") // Ajusta el puerto según tu frontend
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api")
 public class AnalizadorController {
 
-    //mensajes de Prueba
     public AnalizadorController() {
-        System.out.println("AnalizadorController creado!"); // Mensaje de log
+        System.out.println("AnalizadorController creado!");
     }
 
     @GetMapping("/test")
-        public String test() {
-            return "¡El controlador funciona!";
-    }       
+    public String test() {
+        return "¡El controlador funciona!";
+    }
 
-    
     @PostMapping("/analizar")
-    public AnalizadorResponse analizar(@RequestBody AnalizadorRequest request) {
-    String codigoFuente = request.getCodigoFuente();
-    AnalizadorLexico analizador = new AnalizadorLexico(codigoFuente);
-    analizador.analizar();
+    public Map<String, Object> analizar(@RequestBody Map<String, String> request) {
+        String input = request.get("codigoFuente");
 
-    AnalizadorResponse response = new AnalizadorResponse();
-    response.setTokens(analizador.getTokens());
-    response.setTablaSimbolos(analizador.getTablaSimbolos());
-    response.setErrores(analizador.getErrores());
+        Map<String, Object> resultado = new HashMap<>();
 
-    // Imprimir la respuesta en la consola del backend
-    System.out.println("Respuesta del backend:");
-    System.out.println("Tokens: " + response.getTokens());
-    System.out.println("Tabla de símbolos: " + response.getTablaSimbolos());
-    System.out.println("Errores: " + response.getErrores());
+        // Análisis léxico
+        AnalizadorLexico analizador = new AnalizadorLexico(input);
+        analizador.analizar();
 
-    return response;
+        resultado.put("tokens", analizador.getTokens());
+        resultado.put("tablaSimbolos", analizador.getTablaSimbolos());
+        resultado.put("errores", analizador.getErrores());
+
+        // Análisis sintáctico con ANTLR
+        try {
+            CharStream chars = CharStreams.fromString(input);
+            MiGramaticaLexer lexer = new MiGramaticaLexer(chars);
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
+            MiGramaticaParser parser = new MiGramaticaParser(tokens);
+
+            SyntaxErrorListener errorListener = new SyntaxErrorListener();
+            parser.removeErrorListeners();
+            parser.addErrorListener(errorListener);
+
+            ParseTree tree = parser.inicio();
+            MiGramaticaCustomVisitor visitor = new MiGramaticaCustomVisitor();
+            visitor.visit(tree);
+
+            // Recoger resultados algebraicos del visitor
+            List<String> resultadosFinales = new ArrayList<>();
+            for (Map.Entry<String, Double> entry : visitor.getResultados().entrySet()) {
+                resultadosFinales.add(entry.getKey() + " = " + entry.getValue());
+            }
+
+            resultado.put("erroresSintacticos", errorListener.getErrors());
+            resultado.put("resultadosAlgebraicos", resultadosFinales);
+
+        } catch (Exception e) {
+            resultado.put("erroresSintacticos", List.of("Error de análisis: " + e.getMessage()));
+            resultado.put("resultadosAlgebraicos", List.of());
+        }
+
+        return resultado;
     }
-}
-
-class AnalizadorRequest {
-    private String codigoFuente;
-
-    public String getCodigoFuente() {
-        return codigoFuente;
-    }
-
-    public void setCodigoFuente(String codigoFuente) {
-        this.codigoFuente = codigoFuente;
-    }
-}
-
-class AnalizadorResponse {
-    private List<Token> tokens;
-    private Map<String, Simbolo> tablaSimbolos;
-    private List<String> errores;
-
-    // Getters y Setters
-    public List<Token> getTokens() {
-        return tokens;
-    }
-
-    public void setTokens(List<Token> tokens) {
-        this.tokens = tokens;
-    }
-
-    public Map<String, Simbolo> getTablaSimbolos() {
-        return tablaSimbolos;
-    }
-
-    public void setTablaSimbolos(Map<String, Simbolo> tablaSimbolos) {
-        this.tablaSimbolos = tablaSimbolos;
-    }
-
-    public List<String> getErrores() {
-        return errores;
-    }
-
-    public void setErrores(List<String> errores) {
-        this.errores = errores;
-    }
-}
+}*/
